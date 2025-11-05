@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transmission Line RLC Parameters Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+    <div class="main-container w-full rounded-lg">
+        <header class="text-center mb-6 sm:mb-8">
+            <h1 class="text-lg sm:text-xl lg:text-2xl font-extrabold text-white mb-3 uppercase">Transmission Line RLC Parameters Calculator</h1>
+        </header>
+        
+        <main>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
+                <div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 bg-gray-700/50 p-3 rounded-md">
+                        <label for="computeParameter" class="text-gray-200 font-semibold whitespace-nowrap text-sm sm:text-base">Select Parameter to Compute:</label>
+                        <select id="computeParameter" class="block w-full sm:w-auto flex-grow rounded-md p-1.5 bg-gray-800 text-white border-gray-600">
+                            <option value="ALL" selected>All (RLC)</option>
+                            <option value="R">Resistance (R)</option>
+                            <option value="L">Inductance (L)</option>
+                            <option value="C">Capacitance (C)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-fields mb-8 lg:mb-0">
+                        <div class="space-y-3">
+                            <div class="input-group">
+                                <label for="material" class="block">Conductor Material:</label>
+                                <select id="material" class="mt-0.5 block w-full rounded-sm"></select>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="rho" class="block">Resistivity (Ω-m x 10^-8):</label>
+                                <input type="number" id="rho" value="1.7200" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+
+                            <div class="input-group">
+                                <label for="T0" class="block">Temperature Constant (℃):</label>
+                                <input type="number" id="T0" value="234.5000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+
+                            <div class="input-group">
+                                <label for="conductorRadius" class="block">Conductor Radius (m):</label>
+                                <input type="number" id="conductorRadius" value="0.012000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+
+                            <div class="input-group">
+                                <label for="operatingTemp" class="block">Operating Temperature (℃):</label>
+                                <input type="number" id="operatingTemp" value="0.0000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="frequency" class="block">Frequency (Hz):</label>
+                                <input type="number" id="frequency" value="0.0000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="voltageLevel" class="block">Voltage Level (kV):</label>
+                                <input type="number" id="voltageLevel" value="0.0000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="input-group">
+                                <label for="phaseArrangement" class="block">Phase Arrangement:</label>
+                                <select id="phaseArrangement" class="mt-0.5 block w-full rounded-sm">
+                                    <option value="1P_SYMM"> (1P) Symmetrical</option>
+                                    <option value="3P_SYMM" selected>(3P) Symmetrical (Equilateral)</option>
+                                    <option value="3P_UNSYMM">(3P) Asymmetrical (Transposed)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="input-group" id="equal-spacing-input">
+                                <label for="spacing" class="block">Equal Spacing D (m) (symmetrical):</label>
+                                <input type="number" id="spacing" value="4.0000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+                            
+                            <div class="input-group hidden" id="unsym-ab">
+                                <label for="spacing_ab" class="block">Spacing D_ab (m):</label>
+                                <input type="number" id="spacing_ab" value="3.5000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+                            
+                            <div class="input-group hidden" id="unsym-bc">
+                                <label for="spacing_bc" class="block">Spacing D_bc (m):</label>
+                                <input type="number" id="spacing_bc" value="4.5000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+                            
+                            <div class="input-group hidden" id="unsym-ca">
+                                <label for="spacing_ca" class="block">Spacing D_ca (m):</label>
+                                <input type="number" id="spacing_ca" value="4.0000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+
+                            <div class="input-group">
+                                <label for="height" class="block">Height above ground (m):</label>
+                                <input type="number" id="height" value="5.0000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="lineLength" class="block">Line Length (km):</label>
+                                <input type="number" id="lineLength" value="5.0000" step="any" class="mt-0.5 block w-full rounded-sm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-center my-6 sm:my-8">
+                        <button onclick="updateAllCalculations()" class="calculate-button text-white font-bold rounded-sm transition duration-300 bg-blue-600 hover:bg-blue-700 p-2 shadow-lg">
+                            Calculate
+                        </button>
+                    </div>
+                    <div class="text-center mb-4 lg:text-left">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-200">RESULTS</h2>
+                    </div>
+                    
+                    <div class="results-grid max-w-lg mx-auto lg:max-w-full lg:mx-0">
+                        
+                        <div class="text-center">
+                            <h3 class="text-base sm:text-lg font-semibold text-gray-400 mb-2 sm:mb-3">Per Unit Length Values</h3>
+                            <div class="space-y-2">
+                                <div class="result-box rounded-sm flex justify-between items-center r-result">
+                                    <span class="result-label">R/km</span>
+                                    <span id="r-per-km" class="result-value">-</span>
+                                </div>
+                                <div class="result-box rounded-sm flex justify-between items-center l-result">
+                                    <span class="result-label">L/km</span>
+                                    <span id="l-per-km" class="result-value">-</span>
+                                </div>
+                                <div class="result-box rounded-sm flex justify-between items-center c-result">
+                                    <span class="result-label">C/km</span>
+                                    <span id="c-per-km" class="result-value">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <h3 class="text-base sm:text-lg font-semibold text-gray-400 mb-2 sm:mb-3">Total Length Values</h3>
+                            <div class="space-y-2">
+                                <div class="result-box rounded-sm flex justify-between items-center r-result">
+                                    <span class="result-label">R total</span>
+                                    <span id="r-total" class="result-value">-</span>
+                                </div>
+                                <div class="result-box rounded-sm flex justify-between items-center l-result">
+                                    <span class="result-label">L total</span>
+                                    <span id="l-total" class="result-value">-</span>
+                                </div>
+                                <div class="result-box rounded-sm flex justify-between items-center c-result">
+                                    <span class="result-label">C total</span>
+                                    <span id="c-total" class="result-value">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+   <script src="js.js">
+    </script>
+</body>
+</html>
