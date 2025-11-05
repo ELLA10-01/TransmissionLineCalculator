@@ -9,7 +9,6 @@ This project helps electrical engineering students and professionals easily anal
 - Calculate R, L, and C based on user input (e.g., conductor diameter, spacing, length).
 - Clean and responsive **TailwindCSS** interface.
 - Real-time computation using **JavaScript**.
-- Supports light and dark mode (if included).
 - Accessible through **GitHub Pages** for public use.
 
 ---
