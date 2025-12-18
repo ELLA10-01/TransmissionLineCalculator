@@ -26,75 +26,70 @@
             return isNaN(val) ? 0 : val;
         }
 
-        /** Calculates separate GMDs for Inductance (GMD_L) and Capacitance (GMD_C) */
-        function calculateGMDs(arrangement) {
-            const D_eq = getNum('spacing');
-            const D_ab = getNum('spacing_ab');
-            const D_bc = getNum('spacing_bc');
-            const D_ca = getNum('spacing_ca');
-            const h = getNum('height');
-            
-            let GMD_L = 0;
-            let GMD_C = 0;
+ /** Calculates separate GMDs for Inductance (GMD_L) and Capacitance (GMD_C) */
+function calculateGMDs(arrangement) {
+    const D_eq = getNum('spacing'); // Get equal spacing value from UI
+    const D_ab = getNum('spacing_ab'); // Get distance between phase A and B
+    const D_bc = getNum('spacing_bc'); // Get distance between phase B and C
+    const D_ca = getNum('spacing_ca'); // Get distance between phase C and A
+    const h = getNum('height'); // Get conductor height for ground effect calculations
+    
+    let GMD_L = 0; // Initialize Geometric Mean Distance for Inductance
+    let GMD_C = 0; // Initialize Geometric Mean Distance for Capacitance
 
-            if (arrangement === '1P_SYMM') {
-                GMD_L = D_eq;
-                GMD_C = 2 * h;
-            } else if (arrangement === '3P_SYMM') {
-                GMD_L = D_eq;
-                GMD_C = D_eq;
-            } else if (arrangement === '3P_UNSYMM') {
-                if (D_ab > 0 && D_bc > 0 && D_ca > 0) {
-                    const GMD = Math.pow(D_ab * D_bc * D_ca, 1/3);
-                    GMD_L = GMD;
-                    GMD_C = GMD;
-                } else {
-                    GMD_L = 0;
-                    GMD_C = 0;
-                }
-            }
-            return { GMD_L, GMD_C };
+    if (arrangement === '1P_SYMM') { // Logic for Single Phase Symmetrical arrangement
+        GMD_L = D_eq; // L uses the direct distance between the two conductors
+        GMD_C = 2 * h; // C uses the distance to the "image" conductor (2 * height)
+    } else if (arrangement === '3P_SYMM') { // Logic for 3-Phase Equilateral arrangement
+        GMD_L = D_eq; // In a perfect triangle, GMD equals the side length (D)
+        GMD_C = D_eq; // In a perfect triangle, mutual distance is constant for C
+    } else if (arrangement === '3P_UNSYMM') { // Logic for 3-Phase Asymmetrical (Transposed)
+        if (D_ab > 0 && D_bc > 0 && D_ca > 0) { // Check if all spacing inputs are valid
+            const GMD = Math.pow(D_ab * D_bc * D_ca, 1/3); // Formula: Cube root of the product of distances
+            GMD_L = GMD; // Assign calculated mean distance to Inductance
+            GMD_C = GMD; // Assign calculated mean distance to Capacitance
+        } else { // Handle invalid or zero inputs
+            GMD_L = 0; // Reset GMD_L to prevent calculation errors
+            GMD_C = 0; // Reset GMD_C to prevent calculation errors
         }
+    }
+    return { GMD_L, GMD_C }; // Return both geometric values as an object
+}
 
-        // --- Calculation Functions ---
+// --- Calculation Functions ---
 
-        function calculateR(r, lineLength_km, T_op) {
-            const rho = getNum('rho');
-            const T0 = getNum('T0');
-            if (r <= 0 || rho <= 0 || T0 <= 0) return { R_per_km: 0, R_total: 0 };
-            const A = Math.PI * r * r;
-            const T_ref = 20;
-            const fT = (T_op + T0) / (T_ref + T0);
-            const rho_si = rho * 1e-8;
-            const R_per_km = (rho_si / A) * fT * 1000;
-            const R_total = R_per_km * lineLength_km;
-            return { R_per_km, R_total };
-        }
+function calculateR(r, lineLength_km, T_op) {
+    const rho = getNum('rho'); // Fetch resistivity (ρ) from the material data
+    const T0 = getNum('T0'); // Fetch temperature constant (T0) for the material
+    if (r <= 0 || rho <= 0 || T0 <= 0) return { R_per_km: 0, R_total: 0 }; // Validate inputs
+    const A = Math.PI * r * r; // Calculate cross-sectional area (A = πr²)
+    const T_ref = 20; // Set standard reference temperature (20°C)
+    const fT = (T_op + T0) / (T_ref + T0); // Formula: Temperature correction factor
+    const rho_si = rho * 1e-8; // Convert resistivity from micro-ohms to Ohm-meters
+    const R_per_km = (rho_si / A) * fT * 1000; // Calculate R = (ρL/A) * fT scaled to 1km
+    const R_total = R_per_km * lineLength_km; // Multiply per-km result by total line length
+    return { R_per_km, R_total }; // Return result for UI update
+}
 
-        function calculateL(r, lineLength_km, GMD_L) {
-            const GMR = GMR_FACTOR * r;
-            if (GMR <= 0 || GMD_L <= 0 || GMD_L <= GMR) return { L_per_km: 0, L_total: 0 };
-            const ratio = GMD_L / GMR;
-            const L_per_m = L_FACTOR_PER_M * Math.log(ratio);
-            const L_per_km = L_per_m * 1000;
-            const L_total = L_per_km * lineLength_km;
-            return { L_per_km, L_total };
-        }
+function calculateL(r, lineLength_km, GMD_L) {
+    const GMR = GMR_FACTOR * r; // Formula: GMR = 0.7788 * radius (Internal flux factor)
+    if (GMR <= 0 || GMD_L <= 0 || GMD_L <= GMR) return { L_per_km: 0, L_total: 0 }; // Validate inputs
+    const ratio = GMD_L / GMR; // Determine ratio of spacing to effective radius
+    const L_per_m = L_FACTOR_PER_M * Math.log(ratio); // Formula: L = 2e-7 * ln(GMD/GMR)
+    const L_per_km = L_per_m * 1000; // Convert Henries per meter to per kilometer
+    const L_total = L_per_km * lineLength_km; // Calculate total Inductance for the whole line
+    return { L_per_km, L_total }; // Return result for UI update
+}
 
-        /** Includes the constraint GMD > r for a valid positive capacitance. */
-        function calculateC(r, lineLength_km, GMD_C) {
-            if (r <= 0 || GMD_C <= 0 || GMD_C <= r) return { C_per_km: 0, C_total: 0 };
-
-            const numerator = 2 * Math.PI * EPSILON_0;
-            const denominator = Math.log(GMD_C / r);
-
-            const C_per_m = numerator / denominator;
-            
-            const C_per_km = C_per_m * 1000;
-            const C_total = C_per_km * lineLength_km;
-
-            return { C_per_km, C_total };
-        }
+function calculateC(r, lineLength_km, GMD_C) {
+    if (r <= 0 || GMD_C <= 0 || GMD_C <= r) return { C_per_km: 0, C_total: 0 }; // Validate inputs
+    const numerator = 2 * Math.PI * EPSILON_0; // Formula part: 2 * π * ε₀ (Permittivity)
+    const denominator = Math.log(GMD_C / r); // Formula part: ln(Distance / Radius)
+    const C_per_m = numerator / denominator; // Formula: C = (2πε) / ln(D/r)
+    const C_per_km = C_per_m * 1000; // Convert Farads per meter to per kilometer
+    const C_total = C_per_km * lineLength_km; // Calculate total Capacitance for the whole line
+    return { C_per_km, C_total }; // Return result for UI update
+}
 
         // --- Formatting Functions (Aligned to Lab Output) ---
         

@@ -15,7 +15,7 @@ This project helps electrical engineering students and professionals easily anal
 
 ## 🖥️ How to Use
 1. Open the live calculator link:  
-   👉 [**https://ella10-01.github.io/TransmissionLineCalculator/**](https://yourusername.github.io/TransmissionLineRLC-Calculator/)
+   👉 [**https://ella10-01.github.io/TransmissionLineCalculator/**]
 2. Enter all required transmission line parameters.
 3. Click **Calculate** to display results.
 4. View computed Resistance, Inductance, and Capacitance instantly.
